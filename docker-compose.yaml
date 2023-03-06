@@ -1,0 +1,32 @@
+version: "3"
+services:
+  development:
+    container_name: development
+    build: .
+    volumes:
+      - .:/development
+    ports:
+      - "8089:8089"
+
+  db:
+    image: mysql
+    container_name: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 9998:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: person_db
+    volumes:
+      - /home/cssouza/database:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 9999:8080
+    depends_on:
+      - db
