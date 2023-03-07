@@ -7,7 +7,9 @@ int main (int argc, char *argv[])
 	MYSQL mysql;
 
 	char buffer [1024] = {0};
-	char *query = "insert into person_tb (name, age) values ('%s', %d);";
+	// char *query = "insert into person_tb (name, age) values ('%s', %d);";
+
+	char *query = "UPDATE person_tb SET name = '%s' WHERE id = %d;";
 
 	mysql_init(&mysql);
 
@@ -20,7 +22,7 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "Failed to connect to database: Error: %s\n", mysql_error(&mysql));
 	}
 
-	snprintf (buffer, 1024, query, "Nova pessoa", 25);
+	snprintf (buffer, 1024, query, "Samuel", 2);
 
 	mysql_query(&mysql, buffer);
 
