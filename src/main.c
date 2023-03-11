@@ -1,23 +1,19 @@
 #include <mysql.h>
 #include <stdio.h>
+#include <string.h>
+
+#define INSERT_STMT	"INSERT INTO person_tb (name, age) VALUES (?, ?)"
 
 int main (int argc, char *argv[])
 {
 
 	MYSQL mysql;
-	MYSQL_RES *result_set;
-	MYSQL_ROW row;
-	unsigned int num_fields;
-	unsigned int i;
+	MYSQL_STMT *stmt;
+	MYSQL_BIND bind[2];
 
-	char buffer [1024] = {0};
-	// char *query = "insert into person_tb (name, age) values ('%s', %d);";
-
-	// char *query = "UPDATE person_tb SET name = '%s' WHERE id = %d;";
-
-	// char *query = "DELETE FROM person_tb WHERE id = %d;";
-
-	char *query = "SELECT * FROM person_tb;";
+	char *name = "Cristiano";
+	unsigned long name_size = strlen (name);
+	int age = 36;
 
 	mysql_init(&mysql);
 
@@ -30,27 +26,28 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "Failed to connect to database: Error: %s\n", mysql_error(&mysql));
 	}
 
-	snprintf (buffer, 1024, query, 1);
+	stmt = mysql_stmt_init (&mysql);
 
-	mysql_query(&mysql, buffer);
+	mysql_stmt_prepare (stmt, INSERT_STMT, sizeof (INSERT_STMT));
 
-	result_set = mysql_store_result(&mysql);
-    if (result_set)  // there are rows
-    {
-        num_fields = mysql_num_fields(result_set);
-        while ((row = mysql_fetch_row(result_set)))
-		{
-			unsigned long *lengths;
-			lengths = mysql_fetch_lengths(result_set);
-			for(i = 0; i < num_fields; i++)
-			{
-				printf("[%.*s] ", (int) lengths[i],	row[i] ? row[i] : "NULL");
-			}
-			printf("\n");
-		}
+	memset (bind, 0, sizeof (bind));
 
-		mysql_free_result(result_set);
-    }
+	bind[0].buffer_type = MYSQL_TYPE_STRING;
+	bind[0].buffer = (char *)name;
+	bind[0].buffer_length = name_size;
+	bind[0].is_null = 0;
+	bind[0].length = &name_size;
+
+	bind[1].buffer_type = MYSQL_TYPE_LONG;
+	bind[1].buffer = (char *)&age;
+	bind[1].length = 0;
+	bind[1].is_null = 0;
+
+	mysql_stmt_bind_param (stmt, bind);
+
+	mysql_stmt_execute (stmt);
+
+	mysql_stmt_close (stmt);
 
 	mysql_close(&mysql);
 
